@@ -1,34 +1,34 @@
 # sharp for AWS Lambda Layers
 
-[![GitHub release](https://img.shields.io/github/tag/pH200/sharp-layer.svg)](https://github.com/pH200/sharp-layer/tags)
-[![Build action](https://github.com/pH200/sharp-layer/actions/workflows/build.yml/badge.svg)](https://github.com/pH200/sharp-layer/actions/workflows/build.yml)
+[![GitHub release](https://img.shields.io/github/tag/Claudio-rp/sharp-layer.svg)](https://github.com/Claudio-rp/sharp-layer/tags)
+[![Build action](https://github.com/Claudio-rp/sharp-layer/actions/workflows/build.yml/badge.svg)](https://github.com/Claudio-rp/sharp-layer/actions/workflows/build.yml)
 
 ## About
 
 The prebuilt [sharp](https://www.npmjs.com/package/sharp) node module for AWS Lambda layer.
+
+> **Note:** This is a fork of [pH200/sharp-layer](https://github.com/pH200/sharp-layer). Starting with sharp 0.35.3, the esbuild bundling step was removed because sharp's new native module loader uses dynamic `require()` calls that are incompatible with esbuild. The layer now copies sharp's pre-built dist files directly.
 
 ### Features
 
 - Built and tested automatically using GitHub Actions
 - Automatically releases [sharp](https://www.npmjs.com/package/sharp) updates with GitHub Actions
 - Separated builds for `arm64` and `x64`
-- Minified and bundled with `esbuild`
-- Minimum `6.98 MB` zip file to optimize cold start time
 
-### Why use a bundled Lambda function? / Why separate build for arm64?
+### Why use a Lambda layer for sharp?
 
-Please check out [Optimizing Node.js dependencies in AWS Lambda](https://aws.amazon.com/blogs/compute/optimizing-node-js-dependencies-in-aws-lambda/) for details. A bundled and minified lambda function can be up to 70% faster for cold starts. The package size is also crucial for cold start performance.
+Sharp includes native binaries (libvips) that need to match the Lambda runtime architecture. A pre-built layer avoids bundling issues and ensures the correct native binary is available at runtime. Check out [Optimizing Node.js dependencies in AWS Lambda](https://aws.amazon.com/blogs/compute/optimizing-node-js-dependencies-in-aws-lambda/) for more details.
 
 ## Download
 
-[**Releases**](https://github.com/pH200/sharp-layer/releases)
+[**Releases**](https://github.com/Claudio-rp/sharp-layer/releases)
 
-Download latest [release-arm64.zip](https://github.com/pH200/sharp-layer/releases/latest/download/release-arm64.zip) or [release-x64.zip](https://github.com/pH200/sharp-layer/releases/latest/download/release-x64.zip)
+Download latest [release-arm64.zip](https://github.com/Claudio-rp/sharp-layer/releases/latest/download/release-arm64.zip) or [release-x64.zip](https://github.com/Claudio-rp/sharp-layer/releases/latest/download/release-x64.zip)
 
 ## Usage
 
 ```js
-import sharp from 'sharp'
+import sharp from "sharp";
 ```
 
 Check out [aws: Creating and sharing Lambda layers](https://docs.aws.amazon.com/lambda/latest/dg/configuration-layers.html) for more details.
@@ -40,7 +40,7 @@ This package can be used with [sst](https://sst.dev). Check out [docs.sst.dev: L
 ```js
 function: {
   handler: '{handler}',
-  runtime: 'nodejs18.x',
+  runtime: 'nodejs20.x',
   architecture: 'arm_64',
   nodejs: {
     esbuild: {
@@ -63,45 +63,41 @@ function: {
 Providing **a zip file** locally actually works, even though it's **not** mentioned in the documentation.
 
 ```yml
-  ## Lambda
-  ImageFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      CodeUri: image-lambda/
-      Handler: app.handler
-      Runtime: nodejs18.x
-      Architectures:
-        - arm64
-      Timeout: 30
-      MemorySize: 1024
-      Layers:
-        - !Ref SharpLayer
-    Metadata:
-      BuildMethod: esbuild
-      BuildProperties:
-        # Check these two issues for problems related to esm and esbuild
-        # https://github.com/evanw/esbuild/issues/1921
-        # https://github.com/evanw/esbuild/pull/2067#issuecomment-1503688128
-        # Switch to cjs when esm doesn't work
-        Format: esm
-        OutExtension:
-          - .js=.mjs
-        EntryPoints:
-          - app.ts
-        External:
-          - '@aws-sdk/*' # @aws-sdk 3.x is installed globally for nodejs18.x
-          - sharp # use layer
-  ## Lambda layer
-  SharpLayer:
-    Type: AWS::Serverless::LayerVersion
-    Properties:
-      LayerName: sharp
-      ContentUri: layers/sharp/release-arm64.zip # zip
-      CompatibleArchitectures:
-        - arm64
-      CompatibleRuntimes:
-        - nodejs18.x
-        - nodejs16.x
+## Lambda
+ImageFunction:
+  Type: AWS::Serverless::Function
+  Properties:
+    CodeUri: image-lambda/
+    Handler: app.handler
+    Runtime: nodejs20.x
+    Architectures:
+      - arm64
+    Timeout: 30
+    MemorySize: 1024
+    Layers:
+      - !Ref SharpLayer
+  Metadata:
+    BuildMethod: esbuild
+    BuildProperties:
+      Format: esm
+      OutExtension:
+        - .js=.mjs
+      EntryPoints:
+        - app.ts
+      External:
+        - "@aws-sdk/*"
+        - sharp # use layer
+## Lambda layer
+SharpLayer:
+  Type: AWS::Serverless::LayerVersion
+  Properties:
+    LayerName: sharp
+    ContentUri: layers/sharp/release-arm64.zip # zip
+    CompatibleArchitectures:
+      - arm64
+    CompatibleRuntimes:
+      - nodejs20.x
+      - nodejs18.x
 ```
 
 ## Build
@@ -109,6 +105,8 @@ Providing **a zip file** locally actually works, even though it's **not** mentio
 Fork this repo -> Actions -> Run build.yml
 
 ## References
+
+[pH200/sharp-layer](https://github.com/pH200/sharp-layer) - original upstream repo
 
 [Umkus/lambda-layer-sharp](https://github.com/Umkus/lambda-layer-sharp) - another maintained sharp lambda layer
 
