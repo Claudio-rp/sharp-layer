@@ -8,7 +8,7 @@ on:
     branches:
       - master
   schedule:
-    - cron:  '0 4 * * *'
+    - cron: "0 4 * * *"
   workflow_dispatch:
 
 jobs:
@@ -20,11 +20,9 @@ jobs:
       - name: Setup node
         uses: actions/setup-node@v4
         with:
-          node-version: '^20.10.0'
+          node-version: "^20.10.0"
       - name: Checkout
         uses: actions/checkout@v3
-      - name: Install esbuild
-        run: npm i -g esbuild@0.18.20
 
       - name: Install sharp - arm64
         run: npm i --save-exact --os=linux --cpu=arm64 --libc=glibc sharp
@@ -34,18 +32,13 @@ jobs:
         id: version
         uses: notiz-dev/github-action-json-property@release
         with:
-          path: 'package.json'
-          prop_path: 'dependencies.sharp'
-      - name: esbuild - arm64
-        run: esbuild --bundle ./node_modules/sharp/ --outfile=index.js --minify --format=cjs --platform=node
+          path: "package.json"
+          prop_path: "dependencies.sharp"
       - name: Zip - arm64
         run: |
-          mkdir -p nodejs/node_modules/sharp/lib
-          mv index.js nodejs/node_modules/sharp/lib/
-          mv node_modules/sharp/package.json nodejs/node_modules/sharp/
-          mv node_modules/sharp/LICENSE nodejs/node_modules/sharp/
-          mv node_modules/sharp/lib/index.d.ts nodejs/node_modules/sharp/lib/
-          mv node_modules/@img nodejs/node_modules/
+          mkdir -p nodejs/node_modules
+          cp -r node_modules/sharp nodejs/node_modules/
+          cp -r node_modules/@img nodejs/node_modules/
           zip -r release-arm64 nodejs
       - name: Clean arm64
         run: rm -rf nodejs node_modules # keep package.json for keeping the version
@@ -54,16 +47,11 @@ jobs:
         run: npm i --save-exact --os=linux --cpu=x64 --libc=glibc sharp
       - name: Remove musl-based binary # @npm/cli#6914
         run: rm -rf node_modules/@img/*-linuxmusl*
-      - name: esbuild - x64
-        run: esbuild --bundle ./node_modules/sharp/ --outfile=index.js --minify --format=cjs --platform=node
       - name: Zip - x64
         run: |
-          mkdir -p nodejs/node_modules/sharp/lib
-          mv index.js nodejs/node_modules/sharp/lib/
-          mv node_modules/sharp/package.json nodejs/node_modules/sharp/
-          mv node_modules/sharp/LICENSE nodejs/node_modules/sharp/
-          mv node_modules/sharp/lib/index.d.ts nodejs/node_modules/sharp/lib/
-          mv node_modules/@img nodejs/node_modules/
+          mkdir -p nodejs/node_modules
+          cp -r node_modules/sharp nodejs/node_modules/
+          cp -r node_modules/@img nodejs/node_modules/
           zip -r release-x64 nodejs
       - name: Clean x64
         run: rm -rf nodejs node_modules # keep package.json for keeping the version
@@ -74,16 +62,11 @@ jobs:
           npm i --os=linux --cpu=arm64 --libc=glibc sharp
       - name: Remove musl-based binary # @npm/cli#6914
         run: rm -rf node_modules/@img/*-linuxmusl*
-      - name: esbuild - all
-        run: esbuild --bundle ./node_modules/sharp/ --outfile=index.js --minify --format=cjs --platform=node
       - name: Zip - all
         run: |
-          mkdir -p nodejs/node_modules/sharp/lib
-          mv index.js nodejs/node_modules/sharp/lib/
-          mv node_modules/sharp/package.json nodejs/node_modules/sharp/
-          mv node_modules/sharp/LICENSE nodejs/node_modules/sharp/
-          mv node_modules/sharp/lib/index.d.ts nodejs/node_modules/sharp/lib/
-          mv node_modules/@img nodejs/node_modules/
+          mkdir -p nodejs/node_modules
+          cp -r node_modules/sharp nodejs/node_modules/
+          cp -r node_modules/@img nodejs/node_modules/
           zip -r release-all nodejs
 
       - name: Test
