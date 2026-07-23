@@ -36,9 +36,8 @@ jobs:
           prop_path: "dependencies.sharp"
       - name: Zip - arm64
         run: |
-          mkdir -p nodejs/node_modules
-          cp -r node_modules/sharp nodejs/node_modules/
-          cp -r node_modules/@img nodejs/node_modules/
+          mkdir -p nodejs
+          cp -r node_modules nodejs/
           zip -r release-arm64 nodejs
       - name: Clean arm64
         run: rm -rf nodejs node_modules # keep package.json for keeping the version
@@ -49,9 +48,8 @@ jobs:
         run: rm -rf node_modules/@img/*-linuxmusl*
       - name: Zip - x64
         run: |
-          mkdir -p nodejs/node_modules
-          cp -r node_modules/sharp nodejs/node_modules/
-          cp -r node_modules/@img nodejs/node_modules/
+          mkdir -p nodejs
+          cp -r node_modules nodejs/
           zip -r release-x64 nodejs
       - name: Clean x64
         run: rm -rf nodejs node_modules # keep package.json for keeping the version
@@ -64,9 +62,8 @@ jobs:
         run: rm -rf node_modules/@img/*-linuxmusl*
       - name: Zip - all
         run: |
-          mkdir -p nodejs/node_modules
-          cp -r node_modules/sharp nodejs/node_modules/
-          cp -r node_modules/@img nodejs/node_modules/
+          mkdir -p nodejs
+          cp -r node_modules nodejs/
           zip -r release-all nodejs
 
       - name: Test
